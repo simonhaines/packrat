@@ -1,26 +1,26 @@
-#lang scribble/doc
+#lang scribble/manual
 
-@(require scribble/manual
-          scribble/examples
-          (for-label racket/base packrat)
-		  (for-template packrat))
+@(require packrat
+		  scribble/examples
+		  (for-syntax packrat/parse)
+          (for-label racket/base packrat))
 
-@title{Packrat: Simple Packrat Parsing}
+@title[#:version "2.4"]{Packrat: Simple Packrat Parsing}
 @author[(author+email "David Van Horn" "dvanhorn@ccs.neu.edu")
         (author+email "Simon Haines" "simon.haines@scalardata.com")]
 
-@defmodule[packrat]
-
-This module provides a small library of Packrat parsing combinators and a syntax for defining parsers based on the portable packrat parsing library by Tony Garnock-Jones: @url{http://www.lshift.net/~tonyg/packrat.pdf}
+@defmodule[packrat]{
+This module provides a small library of parsing combinators and a syntax for defining parsers based on the portable packrat parsing library by Tony Garnock-Jones: @url{http://www.lshift.net/~tonyg/packrat.pdf}
 
 Bug reports, suggestions and pull requests are welcome via @hyperlink["https://github.com/simonhaines/packrat"]{GitHub}.
+}
 
 @(table-of-contents)
 
 @section{Combinator library}
 @defmodule[packrat/combinator]
 
-@defstruct[parse-position
+@defstruct[parse-position 
            ([filename string?]
             [line number?]
             [column number?])]{
@@ -62,7 +62,7 @@ Given a position, and the character occuring at that position, returns the posit
 }
   
 @defproc[(empty-results [pos (or/c parse-position? false?)]) parse-results?]{
-Creates an empty @racket[parse-results] structure using the @racket[pos] argument as the current @racket[position].
+Creates an empty @racket[parse-results] structure using the @racket[pos] argument as the current position.
 }
 
 @defproc[(make-results [pos (or/c parse-position? false?)]
@@ -184,7 +184,7 @@ Returns an input stream generator from the @racket[tokens]. See @racket[base-gen
 
   
 @section{Parser syntax}
-@defmodule[packrat/parser]
+@defmodule[packrat/parse]
 
 @defform/subs[#:literals (! / := |@| quote)
               (parse id (nonterminal-id (sequence body body0 ...) ...) ...)

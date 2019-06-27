@@ -1,7 +1,7 @@
-#lang scheme
-(require "parse.ss")
-(require "combinator.ss")
-(require test-engine/scheme-tests)
+#lang racket/base
+(require rackunit
+         "parse.rkt"
+         "combinator.rkt")
 
 (define calc 
   (parse expr
@@ -17,7 +17,7 @@
             (('oparen a := expr 'cparen) a))))
 
 (define g (packrat-list-results '((num . 1) (+) (num . 2) (*) (num . 3))))
-(check-expect (parse-result-semantic-value (calc g)) 7)
+(check-equal? (parse-result-semantic-value (calc g)) 7)
 
 ;; Char ... -> Number
 ;; Given cs lexed as a number.
@@ -73,7 +73,7 @@
      ((a := <special-initial>) a))    
     (<subsequent>* 
      ((s := <subsequent> s* := <subsequent>*) (cons s s*))
-     (() empty))    
+     (() '()))    
     (<subsequent> 
      ((a := <initial>) a)
      ((a := <digit>) a)
@@ -114,7 +114,7 @@
      (('#\" s := <string-elems>* '#\") (apply string s)))
     (<string-elems>* 
      ((s := <string-element> cs := <string-elems>*) (cons s cs))
-     (() empty))    
+     (() '()))    
     (<string-element> 
      ((c := (? (λ (x) (not (or (char=? x '#\\)
                                (char=? x '#\"))))))
@@ -173,7 +173,7 @@
      ((d := <datum> ds := <datum>*) (cons d ds)))
     (<datum>* 
      ((d := <datum> ds := <datum>*) (cons d ds))
-     (() empty))))
+     (() '()))))
 
 
 (define (lex s)
@@ -182,7 +182,7 @@
       (if (parse-result-successful? r)          
           (cons (parse-result-semantic-value r)
                 (loop (parse-result-next r)))                 
-          empty))))
+          '()))))
 
 (define (par l)
   (let ((r (parser (packrat-list-results l))))
@@ -193,43 +193,41 @@
 (define (read-string s)
   (par (lex s)))
 
-(check-expect (lex "x") '((I . x)))
-(check-expect (lex "-16") '((N . -16)))
-(check-expect (lex "(") '((LP)))
-(check-expect (lex "#\\(") '((C . #\()))
-(check-expect (lex "#t") '((B . #t)))
-(check-expect (lex "#f") '((B . #f)))
-(check-expect (lex "+") '((I . +)))
-(check-expect (lex "-") '((I . -)))
-(check-expect (lex "'") '((Q)))
-(check-expect (lex ",") '((UQ)))
-(check-expect (lex ",@") '((US)))
-(check-expect (lex "string-append0") '((I . string-append0)))
-(check-expect (parse-error? (read-string "")) #t)
-(check-expect (read-string "x") 'x)
-(check-expect (read-string "5") 5)
-(check-expect (read-string "-16") -16)
-(check-expect (read-string "#t") #t)
-(check-expect (read-string "#f") #f)
-(check-expect (read-string "#\\a") #\a)
-(check-expect (read-string "\"\"") "")
-(check-expect (read-string "\"hi\"") "hi")
-(check-expect (read-string "<hi>") '<hi>)
-(check-expect (read-string "string->number") 'string->number)
-(check-expect (read-string "()") '())
-(check-expect (read-string "(1 . 2)") '(1 . 2))
-(check-expect (read-string "(1 . 2 )") '(1 . 2))
-(check-expect (read-string "( 1 . 2)") '(1 . 2))
-(check-expect (read-string "(1 2)") '(1 2))
-(check-expect (read-string "(1 2 )") '(1 2))
-(check-expect (read-string "( 1 2)") '(1 2))
-(check-expect (read-string "'(1 2)") ''(1 2))
-(check-expect (read-string ",(1 2)") ',(1 2))
-(check-expect (read-string ",@(1 2)") ',@(1 2))
-(check-expect (read-string #<<***
+(check-equal? (lex "x") '((I . x)))
+(check-equal? (lex "-16") '((N . -16)))
+(check-equal? (lex "(") '((LP)))
+(check-equal? (lex "#\\(") '((C . #\()))
+(check-equal? (lex "#t") '((B . #t)))
+(check-equal? (lex "#f") '((B . #f)))
+(check-equal? (lex "+") '((I . +)))
+(check-equal? (lex "-") '((I . -)))
+(check-equal? (lex "'") '((Q)))
+(check-equal? (lex ",") '((UQ)))
+(check-equal? (lex ",@") '((US)))
+(check-equal? (lex "string-append0") '((I . string-append0)))
+(check-equal? (parse-error? (read-string "")) #t)
+(check-equal? (read-string "x") 'x)
+(check-equal? (read-string "5") 5)
+(check-equal? (read-string "-16") -16)
+(check-equal? (read-string "#t") #t)
+(check-equal? (read-string "#f") #f)
+(check-equal? (read-string "#\\a") #\a)
+(check-equal? (read-string "\"\"") "")
+(check-equal? (read-string "\"hi\"") "hi")
+(check-equal? (read-string "<hi>") '<hi>)
+(check-equal? (read-string "string->number") 'string->number)
+(check-equal? (read-string "()") '())
+(check-equal? (read-string "(1 . 2)") '(1 . 2))
+(check-equal? (read-string "(1 . 2 )") '(1 . 2))
+(check-equal? (read-string "( 1 . 2)") '(1 . 2))
+(check-equal? (read-string "(1 2)") '(1 2))
+(check-equal? (read-string "(1 2 )") '(1 2))
+(check-equal? (read-string "( 1 2)") '(1 2))
+(check-equal? (read-string "'(1 2)") ''(1 2))
+(check-equal? (read-string ",(1 2)") ',(1 2))
+(check-equal? (read-string ",@(1 2)") ',@(1 2))
+(check-equal? (read-string #<<***
 (define (f x) (string-append "(f x)" x))
 ***
 )
               '(define (f x) (string-append "(f x)" x)))
-
-(test)
