@@ -251,5 +251,5 @@ See the tests source file for an example of a parser for a simplified Scheme gra
 @section{Test suite}
 @defmodule[packrat/test]
 
-Requiring this module will run the test suite.
+This module contains the test suite which is run during package installation, or from the command line: @racket[raco test -p packrat].
            
